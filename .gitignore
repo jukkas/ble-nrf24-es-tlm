@@ -1,0 +1,11 @@
+# SDCC compilation droppings
+*.asm
+*.cdb
+*.ihx
+*.lk
+*.lst
+*.map
+*.rst
+*.sym
+#
+.vscode
