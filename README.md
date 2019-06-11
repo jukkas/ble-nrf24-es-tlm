@@ -10,6 +10,8 @@ Idea to use that for Eddystone URL-beacon, and some related code, I found from h
 
 This implementation adds related STM8 code and also support for interleaved Eddystone telemetry (TLM) frames containing temperature data, which can be read from attached DS18B20 sensor.
 
+Git branch 'temperature-beacon' contains version that broadcasts only temperature data without any Eddystone data.
+
 ## Hardware used
 This example assumes following hardware configuration:
 - STM8 development board based on **STM8S103F3**.
