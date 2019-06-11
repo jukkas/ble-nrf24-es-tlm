@@ -282,65 +282,51 @@ static int encode_BLE_header(uint8_t *buf) {
     return L;
 }
 
-// Construct Eddystone URL frame. In this example URL is https://www.wikipedia.org
-// See https://github.com/google/eddystone/tree/master/eddystone-url
-static uint8_t encode_ES_URL(uint8_t *buf) {
+
+static uint8_t encode_temperature_beacon(uint8_t *buf, int16_t temperature_100) {
     uint8_t L = encode_BLE_header(buf);
-
-    buf[L++] = 16; // Length of data (max 17)
-    buf[L++] = 0x16; // Data type "Service Data"
-    buf[L++] = 0xAA; // First part of the Eddystone Service UUID of 0xFEAA
-    buf[L++] = 0xFE; // Second part of the Eddystone Service UUID of 0xFEAA
-    buf[L++] = 0x10; // Frame Type: Eddystone-URL
-    buf[L++] = 0xEF; // TX Power
-    buf[L++] = 0x01; // URL Scheme, https://www.
-    buf[L++] = 'w';
-    buf[L++] = 'i';
-    buf[L++] = 'k';
-    buf[L++] = 'i';
-    buf[L++] = 'p';
-    buf[L++] = 'e';
-    buf[L++] = 'd';
-    buf[L++] = 'i';
-    buf[L++] = 'a';
-    buf[L++] = 0x01; // Domain extension, .org
-
-    return L;
-}
-
-// Construct Eddystone Unencrypted TLM frame. Include our DS18B20 temperature, beacon count and seconds since boot
-// Battery level not supported
-// See https://github.com/google/eddystone/blob/master/eddystone-tlm/tlm-plain.md
-static uint8_t encode_ES_TLM(uint8_t *buf, int16_t temperature_100, unsigned long count, uint32_t time) {
-    uint8_t L = encode_BLE_header(buf);
-
-    int16_t temperature = (long)256*temperature_100 / 100; // Encode as needed in Eddystone-tlm
 
     if (temperature_100 == -9999) { // No temperature
-        temperature = INT16_MIN;
+        temperature_100 = INT16_MIN;
     }
 
-    time = time*10;
+    // Advertised name
+    buf[L++] = 9;               // length of the name, including type byte
+    buf[L++] = 0x09;            // Complete Local Name
+    buf[L++] = 't';
+    buf[L++] = 'e';
+    buf[L++] = 's';
+    buf[L++] = 't';
+    buf[L++] = 't';
+    buf[L++] = 'e';
+    buf[L++] = 'm';
+    buf[L++] = 'p';
 
-    buf[L++] = 0x11; // Length of data
+    // Advertised temperature
+#ifdef NORDIC_TEMPERATURE
+    // "health thermometer" service
+    // Nordic Semiconductor used this and e.g. Arduino BTLE library (https://github.com/floe/BTLE) implements
+    int32_t temp;
+    int32_t exponent = -2;
+    temp = ((exponent & 0xff) << 24) | ((int32_t)temperature_100 & 0xffffff);
+
+    buf[L++] = 7; // Length of data
     buf[L++] = 0x16; // Data type "Service Data"
-    buf[L++] = 0xAA; // First part of the Eddystone Service UUID of 0xFEAA
-    buf[L++] = 0xFE; // Second part of the Eddystone Service UUID of 0xFEAA
-    buf[L++] = 0x20; // Frame Type: Eddystone-TLM Unencrypted
-    buf[L++] = 0x00; // TLM version
-    buf[L++] = 0x00; // Battery voltage, 1 mV/bit // 0 means not available
-    buf[L++] = 0x00;
-    buf[L++] = (temperature >> 8) & 0xff; // Beacon temperature
-    buf[L++] = temperature & 0xff;
-    buf[L++] = (count >> 24) & 0xff; // Advertising PDU count
-    buf[L++] = (count >> 16) & 0xff;
-    buf[L++] = (count >> 8) & 0xff;
-    buf[L++] = count & 0xff;
-    buf[L++] = (time >> 24) & 0xff; // Time since power-on or reboot
-    buf[L++] = (time >> 16) & 0xff;
-    buf[L++] = (time >> 8) & 0xff;
-    buf[L++] = time & 0xff;
-
+    buf[L++] = 0x09; // UUID 0x1809 (health_thermometer) (Nordic used this in examples for temperature beacons)
+    buf[L++] = 0x18; //
+    buf[L++] = (uint8_t)(temp & 0xff);
+    buf[L++] = (uint8_t)((temp >> 8) & 0xff);
+    buf[L++] = (uint8_t)((temp >> 16) & 0xff);;
+    buf[L++] = (uint8_t)((temp >> 24) & 0xff);;
+#else
+    // Standard "temperature" service
+    buf[L++] = 5; // Length of data
+    buf[L++] = 0x16; // Data type "Service Data"
+    buf[L++] = 0x6e; // UUID 0x2a6e (temperature)
+    buf[L++] = 0x2a; //
+    buf[L++] = (uint8_t)(temperature_100 & 0xff); // LSB of temperature*100
+    buf[L++] = (uint8_t)((temperature_100 >> 8) & 0xff); // MSB of temperature*100
+#endif
     return L;
 }
 
@@ -424,12 +410,8 @@ int main(void)
             temperature_100 = ds18b20_read();
         }
 
-        uint8_t L;
-        if (seconds % 2) { // Every other second send URL or TLM
-            L = encode_ES_TLM(buf, temperature_100, pdu_count, seconds);
-        } else {
-            L = encode_ES_URL(buf);
-        }
+        uint8_t L =  encode_temperature_beacon(buf, temperature_100);
+
         // CRC start value: 0x555555
         buf[L++] = 0x55;
         buf[L++] = 0x55;

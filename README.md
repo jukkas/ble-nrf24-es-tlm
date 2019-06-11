@@ -1,4 +1,4 @@
-# Bluetooth Low Energy (BLE) Eddystone beacon using STM8 and nRF24L01+
+# Bluetooth Low Energy (BLE) temperature beacon using STM8 and nRF24L01+
 
 This demo code implements one of the cheapest possible ways to implement a BLE beacon.
 
@@ -6,9 +6,9 @@ It uses low-cost nRF24L01-module for BLE compatible radio and STM8 development m
 
 Idea for abusing NRFL01 originates from http://dmitry.gr/?r=05.Projects&proj=11.%20Bluetooth%20LE%20fakery (including related code).
 
-Idea to use that for Eddystone URL-beacon, and some related code, I found from https://github.com/kasparsd/tinystone .
+Some beacon code was adapted from https://github.com/kasparsd/tinystone .
 
-This implementation adds related STM8 code and also support for interleaved Eddystone telemetry (TLM) frames containing temperature data, which can be read from attached DS18B20 sensor.
+This implementation adds STM8 code and encoding of temperature data, which is read from attached DS18B20 sensor.
 
 ## Hardware used
 This example assumes following hardware configuration:
@@ -29,7 +29,7 @@ This example assumes following hardware configuration:
   MISO <-> C7
   ```
 
-- Optionally for TLM temperature: **DS18B20**-sensor. 
+- For temperature: **DS18B20**-sensor. 
 
   See https://github.com/jukkas/stm8-sdcc-examples/tree/master/ds18b20 . Except DS18B20 data pin is `B4`.
 
@@ -41,6 +41,8 @@ This example assumes following hardware configuration:
 
 ## Notes
 BLE address that this implementation broadcasts is staticly defined in code. So if you have multiple devices, change the address in code to be unique for each device.
+
+BLE name is hardcoded as 'testtemp'. Change into what you wish, and remember to adjust the size field.
 
 ## Copyrights
 

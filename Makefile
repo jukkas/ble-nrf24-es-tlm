@@ -17,6 +17,9 @@ PROGRAMMER = stlinkv2
 DEFINES=
 DEFINES += -DSTM8S103
 
+## If you want beacon to use "Health thermometer" service (default is "Temperature")
+#DEFINES += -DNORDIC_TEMPERATURE
+
 CPPFLAGS = -I.
 CFLAGS = --Werror --std-sdcc99 -mstm8 $(DEFINES)
 LDFLAGS = -lstm8 -mstm8 --out-fmt-ihx
