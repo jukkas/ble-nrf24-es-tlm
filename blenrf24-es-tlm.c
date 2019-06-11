@@ -317,7 +317,7 @@ static uint8_t encode_ES_TLM(uint8_t *buf, int16_t temperature_100, unsigned lon
     int16_t temperature = (long)256*temperature_100 / 100; // Encode as needed in Eddystone-tlm
 
     if (temperature_100 == -9999) { // No temperature
-        temperature = 0x8000;
+        temperature = INT16_MIN;
     }
 
     time = time*10;
