@@ -12,6 +12,8 @@ This implementation adds related STM8 code and also support for interleaved Eddy
 
 Git branch 'temperature-beacon' contains version that broadcasts only temperature data without any Eddystone data.
 
+[A blog post about all this...](https://mcuer.sikamo.net/blog/stm8-nrf24-ble-beacon)
+
 ## Hardware used
 This example assumes following hardware configuration:
 - STM8 development board based on **STM8S103F3**.
